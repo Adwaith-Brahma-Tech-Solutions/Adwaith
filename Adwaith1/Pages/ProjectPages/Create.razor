@@ -1,0 +1,93 @@
+﻿@page "/projects/create"
+@inject DatabaseContext DB
+@using Adwaith1.Application.Models
+@inject NavigationManager NavigationManager
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+
+
+<PageTitle>Create</PageTitle>
+
+<h1>Create</h1>
+
+<h4>Project</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <EditForm method="post" Model="Project" OnValidSubmit="AddProject" FormName="create" Enhance>
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" />
+            <div class="mb-3">
+                <label for="projectname" class="form-label">ProjectName:</label> 
+                <InputText id="projectname" @bind-Value="Project.ProjectName" class="form-control" /> 
+                <ValidationMessage For="() => Project.ProjectName" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="startdate" class="form-label">StartDate:</label> 
+                <InputDate id="startdate" @bind-Value="Project.StartDate" class="form-control" /> 
+                <ValidationMessage For="() => Project.StartDate" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="clientid" class="form-label">ClientId:</label> 
+                <InputSelect id="clientid" @bind-Value="Project.ClientId" class="form-control">
+                    @if (clients is null)
+                    {
+                        <option selected value="">Select client</option>
+                    }
+
+                    else
+                    {
+                        <option value="None">Select client</option>
+                        @foreach (var client in clients)
+                        {
+                            
+                            <option value="@client.Id">@client.Name</option>
+                        }
+
+                    }
+                    
+                </InputSelect>
+
+
+                @* <InputNumber id="clientid" @bind-Value="Project.ClientId" class="form-control" /> 
+                <ValidationMessage For="() => Project.ClientId" class="text-danger" />  *@
+            </div>        
+            <div class="mb-3">
+                <label for="description" class="form-label">Description:</label> 
+                <InputText id="description" @bind-Value="Project.Description" class="form-control" /> 
+                <ValidationMessage For="() => Project.Description" class="text-danger" /> 
+            </div>        
+                 
+            <button type="submit" class="btn btn-primary">Create</button>
+        </EditForm>
+    </div>
+</div>
+
+<div>
+    <a href="/projects">Back to List</a>
+</div>
+
+@code {
+
+    [SupplyParameterFromForm]
+    public Project Project { get; set; } = new();
+
+
+    public IQueryable<Client> clients;
+    protected override void OnInitialized()
+    {
+        clients = DB.Clients.Where(x => x.IsRemoved == false).ToList().AsQueryable();
+    }
+
+    // To protect from overposting attacks, see https://aka.ms/RazorPagesCRUD
+    public async Task AddProject()
+    {
+
+        Project.UpdatedAt = DateTime.Now;
+        
+
+        DB.Projects.Add(Project);
+        await DB.SaveChangesAsync();
+        NavigationManager.NavigateTo("/projects");
+    }
+}

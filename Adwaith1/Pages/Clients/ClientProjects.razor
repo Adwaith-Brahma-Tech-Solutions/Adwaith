@@ -1,0 +1,43 @@
+﻿@page "/clientprojects/{clientId:int}"
+
+@inject DatabaseContext DB
+@using Adwaith1.Application.Models
+
+<h2 class="mb-5" style="text-align:center">Projects - @client.Name.ToUpper()</h2>
+
+<div class="row">
+    @foreach (var item in projects)
+    {
+        <div class="col-sm-4 mb-2">
+            <Card Style="background-color: aliceblue; display: flex; justify-content: center; align-items: center;">
+                <CardBody Style="height:12rem;">
+                    <CardText Style="font-size: 50px; text-align: center; align-items:center" To="projects">
+                        <a href="@($"projectemployees/{item.Id}")" style="text-decoration:none">@item.ProjectName.ToUpper()</a>
+                    </CardText>
+                </CardBody>
+            </Card>
+        </div>
+    }
+</div>
+
+
+
+@code{
+    [Parameter]
+    public int clientId { get; set; }
+    public IQueryable<Project> projects;
+    public Client client = new Client();
+
+
+    protected override void OnInitialized()
+    {
+        projects = DB.Projects.Where(x => x.IsRemoved == false).ToList().AsQueryable();
+        
+
+        if (clientId != null && clientId > 1)
+        {
+            client = DB.Clients.SingleOrDefault(x => x.Id == clientId);
+            projects = projects.Where(x => x.ClientId == clientId).ToList().AsQueryable();
+        }
+    }
+}

@@ -1,0 +1,56 @@
+﻿@page "/projectemployees/delete"
+@inject DatabaseContext DB
+@using Microsoft.AspNetCore.Authorization
+@using Adwaith1.Application.Models
+@inject NavigationManager NavigationManager
+@using Microsoft.EntityFrameworkCore
+@attribute [Authorize]
+
+
+<h3>Are you sure you want to deallocate employee from project @projectemployees.Projects.ProjectName?</h3>
+<div>
+    <hr />
+        <dl class="row">
+            <dd class="col-sm-10">@projectemployees.Employees.EmployeeName</dd>
+        </dl>
+
+        <EditForm method="post" Model="projectemployees" OnValidSubmit="DeleteProjectEmployees" FormName="delete" Enhance>
+            <button type="submit" class="btn btn-danger" disabled="@(projectemployees is null)">Delete</button> |
+        <a href="@($"projectemployees/{projectId}")">Back to List</a>
+        </EditForm>
+    
+</div>
+
+@code {
+   Adwaith1.Application.Models.ProjectEmployees projectemployees = new ();
+
+    [SupplyParameterFromQuery]
+    public int Id { get; set; }
+
+    [SupplyParameterFromQuery]
+    public int projectId { get; set;}
+    public int clientId = 0;
+
+    protected override void OnInitialized()
+    {
+        projectemployees = DB.ProjectEmployees.Include(x=>x.Projects)
+                                .Include(x=>x.Employees)
+                                .SingleOrDefault(x => x.Id == Id);
+
+        if (projectemployees is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    public async Task DeleteProjectEmployees()
+    {
+
+        projectemployees.UpdatedAt = DateTime.Now;
+        projectemployees.IsRemoved = true;
+
+        DB.ProjectEmployees.Update(projectemployees!);
+        await DB.SaveChangesAsync();
+        NavigationManager.NavigateTo($"projectemployees/{projectId}");
+    }
+}

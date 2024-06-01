@@ -1,0 +1,161 @@
+﻿@page "/timesheets/create"
+@inject DatabaseContext DB
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.IdentityModel.Tokens
+@using Adwaith1.Application.Models
+@inject NavigationManager NavigationManager
+@attribute [Authorize]
+@attribute [StreamRendering]
+
+<PageTitle>Create</PageTitle>
+
+<h1>Create</h1>
+
+<h4>Timesheet</h4>
+<hr />
+<div class="row">
+    <div class="col-12">
+        <EditForm method="post" Model="Timesheet" OnValidSubmit="AddTimesheet" FormName="create" Enhance>
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" />
+            <div class="row">
+                <div class="col-md-3">
+                    <label for="projectid" class="form-label">ProjectId:</label>
+                    <InputSelect id="projectid" @bind-Value="Timesheet.ProjectId" class="dropdown-item-text form-select" DisplayName="Select Employee">
+
+                        @if (projects is null)
+                        {
+                            <h6>You are not allocated to any project</h6>
+                        }
+                        else
+                        {
+                            <option selected="selected">Select a project</option>
+                            @foreach (var project in projects)
+                            {
+                                <option value="@project.Id">@project.ProjectName</option>
+                            }
+                        }
+                        
+
+                    </InputSelect>
+                    <ValidationMessage For="() => Timesheet.ProjectId" />
+                </div>
+                <div class="col-md-3">
+                    <label for="date" class="form-label">Date:</label>
+                    <InputDate id="date" @bind-Value="Timesheet.Date" class="form-control" />
+                    <ValidationMessage For="() => Timesheet.Date" class="text-danger" />
+                </div>
+            </div>
+            <div class="mt-2 mb-3">
+                <button type="button" class="btn btn-secondary" @onclick="AddTask">Add Task</button>
+            </div>  
+            
+            @foreach (var task in tasks)
+            {
+                <div class="row">
+                    <div class="col-sm-3 mb-3">
+                        <label for="description" class="form-label">Description:</label>
+                        <InputText @bind-Value="task.Description" class="form-control" />
+                        <ValidationMessage For="@(() => task.Description)" class="text-danger" />
+                    </div>
+
+                    <div class="col-sm-3">
+                        <label for="hoursWorked" class="form-label">Hours Worked:</label>
+                        <InputNumber @bind-Value="task.HoursWorked" class="form-control" />
+                        <ValidationMessage For="@(() => task.HoursWorked)" class="text-danger" />
+                    </div>
+                    <div class="col-sm-3" style="margin-top:30px">
+                        <button type="button" class="btn btn-sm btn-danger" @onclick="()=>RemoveTask(task)">X</button>
+                    </div>
+                </div>
+                
+            }
+
+            <button type="submit" class="btn btn-primary">Create</button>
+        </EditForm>
+    </div>
+</div>
+
+<div>
+    <a href="/timesheets">Back to List</a>
+</div>
+
+@code {
+
+    [SupplyParameterFromForm]
+    public Timesheet Timesheet { get; set; } = new();
+    public List<Project> projects = new List<Project>();
+    public ProjectTasks task = new ProjectTasks();
+    private List<ProjectTasks> tasks = new List<ProjectTasks>();
+    private List<ProjectEmployees> pEmployees = new List<ProjectEmployees>();
+    public string userName = "";
+    Employee emp = new Employee();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            
+            
+            emp = DB.Employees.FirstOrDefault(x => x.EmailId == userName);
+            pEmployees = DB.ProjectEmployees.Where(x => x.EmployeeId == emp.Id).ToList();
+            if (pEmployees is not null && pEmployees.Count > 0)
+            {
+                projects = DB.Projects.Where(x => pEmployees.Select(y => y.ProjectId).Contains(x.Id)).ToList();
+            }
+        }
+        catch(Exception e)
+        {
+            string error = e.Message;
+        }
+
+    }
+
+    // To protect from overposting attacks, see https://aka.ms/RazorPagesCRUD
+    public async Task AddTimesheet()
+    {
+        try
+        {
+            Timesheet.UpdatedAt = DateTime.UtcNow;
+            Timesheet.UpdatedBy = userName;
+            Timesheet.IsRemoved = false;
+            Timesheet.EmployeeId = emp.Id;
+
+            DB.Timesheets.Add(Timesheet);
+            await DB.SaveChangesAsync();
+
+            foreach (var item in tasks)
+            {
+                var timesheetId = DB.Timesheets.Where(x => x.IsRemoved == false)
+                                    .Where(x => x.Date == Timesheet.Date)
+                                    .Where(x => x.UpdatedAt == Timesheet.UpdatedAt)
+                                    .FirstOrDefault(x => x.EmployeeId == emp.Id)
+                                    .Id;
+
+                item.UpdatedAt = DateTime.UtcNow;
+                // item.UpdatedBy = userName;
+                // item.IsRemoved = false;
+                item.TimesheetId = timesheetId;
+                DB.ProjectTasks.Add(item);
+                DB.SaveChanges();
+            }
+
+
+            NavigationManager.NavigateTo("/myTimesheets");
+        }
+        catch(Exception e)
+        {
+            string message = e.Message;
+        }
+    }
+
+    private void AddTask()
+    {
+        tasks.Add(new ProjectTasks());
+    }
+    private void RemoveTask(ProjectTasks task)
+    {
+        tasks.Remove(task);
+    }
+}

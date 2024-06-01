@@ -1,0 +1,73 @@
+﻿@page "/timesheets/delete"
+@inject DatabaseContext DB
+@using Adwaith1.Application.Models
+@inject NavigationManager NavigationManager
+@using Microsoft.EntityFrameworkCore
+
+<PageTitle>Delete</PageTitle>
+
+<h1>Delete</h1>
+
+<h3>Are you sure you want to delete this?</h3>
+<div>
+    <h4>Timesheet</h4>
+    <hr />
+    @if (timesheet is null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else {
+        <dl class="row">
+            <dt class="col-sm-2">EmployeeId</dt>
+            <dd class="col-sm-10">@timesheet.EmployeeId</dd>
+        </dl>
+        <dl class="row">
+            <dt class="col-sm-2">ProjectId</dt>
+            <dd class="col-sm-10">@timesheet.ProjectId</dd>
+        </dl>
+        <dl class="row">
+            <dt class="col-sm-2">Date</dt>
+            <dd class="col-sm-10">@timesheet.Date</dd>
+        </dl>
+        <dl class="row">
+            <dt class="col-sm-2">UpdatedBy</dt>
+            <dd class="col-sm-10">@timesheet.UpdatedBy</dd>
+        </dl>
+        <dl class="row">
+            <dt class="col-sm-2">UpdatedAt</dt>
+            <dd class="col-sm-10">@timesheet.UpdatedAt</dd>
+        </dl>
+        <dl class="row">
+            <dt class="col-sm-2">IsRemoved</dt>
+            <dd class="col-sm-10">@timesheet.IsRemoved</dd>
+        </dl>
+        <EditForm method="post" Model="timesheet" OnValidSubmit="DeleteTimesheet" FormName="delete" Enhance>
+            <button type="submit" class="btn btn-danger" disabled="@(timesheet is null)">Delete</button> |
+            <a href="/timesheets">Back to List</a>
+        </EditForm>
+    }
+</div>
+
+@code {
+    Timesheet? timesheet;
+
+    [SupplyParameterFromQuery]
+    public int Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        timesheet = await DB.Timesheets.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (timesheet is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    public async Task DeleteTimesheet()
+    {
+        DB.Timesheets.Remove(timesheet!);
+        await DB.SaveChangesAsync();
+        NavigationManager.NavigateTo("/timesheets");
+    }
+}

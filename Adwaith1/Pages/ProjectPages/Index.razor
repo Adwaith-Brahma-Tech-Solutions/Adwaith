@@ -1,0 +1,25 @@
+﻿@page "/projects"
+@inject DatabaseContext DB
+@using Adwaith1.Application.Models
+@attribute [Authorize]
+
+
+<PageTitle>Index</PageTitle>
+
+<h1>Index</h1>
+
+<p>
+    <a href="projects/create">Create New</a>
+</p>
+
+@{
+    var x = "Start date"
+        ;
+}
+<QuickGrid Class="table" Items="DB.Projects">
+    <PropertyColumn Property="project => project.ProjectName" />
+    <PropertyColumn Title="Start date" Property="project => project.StartDate.Value.ToShortDateString()"/>
+    <PropertyColumn Property="project => project.Description" />
+    
+
+</QuickGrid>

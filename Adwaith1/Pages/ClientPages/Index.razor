@@ -1,0 +1,20 @@
+﻿@page "/listofclients"
+@inject DatabaseContext DB
+@attribute [Authorize]
+<PageTitle>Index</PageTitle>
+
+<h1>Index</h1>
+
+<p>
+    <a href="clients/create">Create New</a>
+</p>
+
+
+@code {
+    IQueryable<Client> clients;
+    protected override void OnInitialized()
+    {
+        clients = DB.Clients.Where(x => x.IsRemoved == false);
+
+    }
+}

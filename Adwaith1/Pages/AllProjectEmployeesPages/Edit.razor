@@ -1,0 +1,121 @@
+﻿@page "/allprojectemployees/edit"
+@inject DatabaseContext DB
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.EntityFrameworkCore
+
+@inject NavigationManager NavigationManager
+
+@attribute [Authorize]
+
+<PageTitle>Edit</PageTitle>
+
+
+<h1>Edit</h1>
+
+<h4>ProjectEmployees</h4>
+<hr />
+@if (ProjectEmployees is null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-4">
+            <EditForm method="post" Model="ProjectEmployees" OnValidSubmit="UpdateProjectEmployees" FormName="edit" Enhance>
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+                <input type="hidden" name="ProjectEmployees.Id" value="@ProjectEmployees.Id" />
+                <div class="mb-3">
+                    <label for="projectid" class="form-label">Project:</label>
+                    <InputSelect id="projectid" @bind-Value="ProjectEmployees.ProjectId" class="dropdown-item-text form-select">
+                        <option value="" selected="selected">Select a project</option>
+                        @foreach (var project in projects)
+                        {
+                            <option value="@project.Id">@project.ProjectName</option>
+                        }
+                    </InputSelect>
+                    <ValidationMessage For="() => ProjectEmployees.ProjectId" class="text-danger" />
+                </div>
+
+                <div class="mb-3">
+                    <label for="employeeid" class="form-label">Employee:</label>
+                    <InputSelect id="employeeid" @bind-Value="ProjectEmployees.EmployeeId" class="dropdown-item-text form-select">
+                        <option value="" selected="selected">Select an employee</option>
+                        @foreach (var employee in employees)
+                        {
+                            <option value="@employee.Id">@employee.EmployeeName</option>
+                        }
+                    </InputSelect>
+                    <ValidationMessage For="() => ProjectEmployees.EmployeeId" />
+                </div>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </EditForm>
+        </div>
+    </div>
+}
+
+<div>
+    <a href="/allprojectemployees">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    public int Id { get; set; }
+
+    [SupplyParameterFromForm]
+    public ProjectEmployees? ProjectEmployees { get; set; }
+    List<Project> projects = new List<Project>();
+    List<Employee> employees = new List<Employee>();
+
+
+    
+
+    protected override async Task OnInitializedAsync()
+    {
+        
+        ProjectEmployees ??= await DB.ProjectEmployees.FirstOrDefaultAsync(m => m.Id == Id);
+        projects = DB.Projects.Where(x => x.IsRemoved == false).ToList();
+        employees = DB.Employees.Where(x => x.IsRemoved == false).ToList();
+
+        if (ProjectEmployees is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    // To protect from overposting attacks, enable the specific properties you want to bind to.
+    // For more details, see https://aka.ms/RazorPagesCRUD.
+    public async Task UpdateProjectEmployees()
+    {
+        ProjectEmployees.UpdatedAt = DateTime.UtcNow;
+        
+
+        
+
+        DB.Attach(ProjectEmployees!).State = EntityState.Modified;
+
+        try
+        {
+            await DB.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!ProjectEmployeesExists(ProjectEmployees!.Id))
+            {
+                NavigationManager.NavigateTo("notfound");
+            }
+            else
+            {
+                throw;
+            }
+        }
+
+        NavigationManager.NavigateTo("/allprojectemployees");
+    }
+
+    bool ProjectEmployeesExists(int id)
+    {
+        return DB.ProjectEmployees.Any(e => e.Id == id);
+    }
+}
