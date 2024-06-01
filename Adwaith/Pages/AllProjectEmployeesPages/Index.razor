@@ -1,0 +1,28 @@
+﻿@page "/allprojectemployees"
+@using Microsoft.EntityFrameworkCore
+@inject DatabaseContext DB
+
+@attribute [Authorize]
+
+<PageTitle>Index</PageTitle>
+
+<h1>Index</h1>
+
+<p>
+    <a href="allprojectemployees/create">Create New</a>
+</p>
+
+
+
+
+@code{
+    public IQueryable<ProjectEmployees> projectEmployees;
+
+
+    protected override void OnInitialized()
+    {
+        projectEmployees = DB.ProjectEmployees.Include(x => x.Projects)
+                            .Include(x => x.Employees).ToList().AsQueryable();
+
+    }
+}

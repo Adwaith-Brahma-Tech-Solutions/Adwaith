@@ -1,0 +1,65 @@
+﻿@page "/employees/details"
+@inject DatabaseContext DB
+@using Microsoft.AspNetCore.Authorization
+@using Adwaith.Application.Models
+@inject NavigationManager NavigationManager
+@using Microsoft.EntityFrameworkCore
+@attribute [Authorize]
+
+<PageTitle>Details</PageTitle>
+
+<h1>Details</h1>
+
+<div>
+    <h4>Employee</h4>
+    <hr />
+    @if (employee is null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else {
+        <dl class="row">
+            <dt class="col-sm-2">EmployeeName</dt>
+            <dd class="col-sm-10">@employee.EmployeeName</dd>
+            <dt class="col-sm-2">MobileNumber</dt>
+            <dd class="col-sm-10">@employee.MobileNumber</dd>
+            <dt class="col-sm-2">BankName</dt>
+            <dd class="col-sm-10">@employee.BankName</dd>
+            <dt class="col-sm-2">BankAccountNo</dt>
+            <dd class="col-sm-10">@employee.BankAccountNo</dd>
+            <dt class="col-sm-2">IFSC</dt>
+            <dd class="col-sm-10">@employee.IFSC</dd>
+            <dt class="col-sm-2">AccountName</dt>
+            <dd class="col-sm-10">@employee.AccountName</dd>
+            <dt class="col-sm-2">EmailId</dt>
+            <dd class="col-sm-10">@employee.EmailId</dd>
+            <dt class="col-sm-2">UpdatedBy</dt>
+            <dd class="col-sm-10">@employee.UpdatedBy</dd>
+            <dt class="col-sm-2">UpdatedAt</dt>
+            <dd class="col-sm-10">@employee.UpdatedAt</dd>
+            <dt class="col-sm-2">IsRemoved</dt>
+            <dd class="col-sm-10">@employee.IsRemoved</dd>
+        </dl>
+        <div>
+            <a href="@($"/employees/edit?id={employee.Id}")">Edit</a> |
+            <a href="@($"/employees")">Back to List</a>
+        </div>
+    }
+</div>
+
+@code {
+    Employee? employee;
+
+    [SupplyParameterFromQuery]
+    public int Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        employee = await DB.Employees.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (employee is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+}

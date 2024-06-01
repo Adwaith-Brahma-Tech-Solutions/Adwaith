@@ -1,0 +1,111 @@
+﻿@page "/Timesheets/edit"
+@inject DatabaseContext DB
+@using Adwaith.Application.Models
+@inject NavigationManager NavigationManager
+@using Microsoft.EntityFrameworkCore
+
+<PageTitle>Edit</PageTitle>
+
+<h1>Edit</h1>
+
+<h4>Timesheet</h4>
+<hr />
+@if (Timesheet is null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-4">
+            <EditForm method="post" Model="Timesheet" OnValidSubmit="UpdateTimesheet" FormName="edit" Enhance>
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+                <input type="hidden" name="Timesheet.Id" value="@Timesheet.Id" />
+                <div class="mb-3">
+                    <label for="employeeid" class="form-label">EmployeeId:</label>
+                    <InputNumber id="employeeid" @bind-Value="Timesheet.EmployeeId" class="form-control" />
+                    <ValidationMessage For="() => Timesheet.EmployeeId" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="projectid" class="form-label">ProjectId:</label>
+                    <InputNumber id="projectid" @bind-Value="Timesheet.ProjectId" class="form-control" />
+                    <ValidationMessage For="() => Timesheet.ProjectId" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="date" class="form-label">Date:</label>
+                    <InputDate id="date" @bind-Value="Timesheet.Date" class="form-control" />
+                    <ValidationMessage For="() => Timesheet.Date" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="updatedby" class="form-label">UpdatedBy:</label>
+                    <InputText id="updatedby" @bind-Value="Timesheet.UpdatedBy" class="form-control" />
+                    <ValidationMessage For="() => Timesheet.UpdatedBy" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="updatedat" class="form-label">UpdatedAt:</label>
+                    <InputDate id="updatedat" @bind-Value="Timesheet.UpdatedAt" class="form-control" />
+                    <ValidationMessage For="() => Timesheet.UpdatedAt" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="isremoved" class="form-label">IsRemoved:</label>
+                    <InputCheckbox id="isremoved" @bind-Value="Timesheet.IsRemoved" class="form-check-input" />
+                    <ValidationMessage For="() => Timesheet.IsRemoved" class="text-danger" />
+                </div>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </EditForm>
+        </div>
+    </div>
+}
+
+<div>
+    <a href="/timesheets">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    public int Id { get; set; }
+
+    [SupplyParameterFromForm]
+    public Timesheet? Timesheet { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Timesheet ??= await DB.Timesheets.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (Timesheet is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    // To protect from overposting attacks, enable the specific properties you want to bind to.
+    // For more details, see https://aka.ms/RazorPagesCRUD.
+    public async Task UpdateTimesheet()
+    {
+        DB.Attach(Timesheet!).State = EntityState.Modified;
+
+        try
+        {
+            await DB.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!TimesheetExists(Timesheet!.Id))
+            {
+                NavigationManager.NavigateTo("notfound");
+            }
+            else
+            {
+                throw;
+            }
+        }
+
+        NavigationManager.NavigateTo("/timesheets");
+    }
+
+    bool TimesheetExists(int id)
+    {
+        return DB.Timesheets.Any(e => e.Id == id);
+    }
+}

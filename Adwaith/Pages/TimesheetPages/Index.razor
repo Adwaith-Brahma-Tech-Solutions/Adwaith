@@ -1,0 +1,55 @@
+﻿@page "/myTimesheets"
+
+@attribute [Authorize]
+
+<h1>Timesheets</h1>
+
+<p>
+    <a href="timesheets/create">Create New</a>
+</p>
+
+@{
+    var count = 1;
+}
+
+<table class="table table-stripped" style="vertical-align:middle; text-align:left">
+    <thead>
+        <tr>
+            <th>S.No</th>
+            <th>Project Name</th>
+            <th>Date</th>
+            <th>Task Description</th>
+            <th>Hours Worked</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        
+    </tbody>
+</table>
+
+
+@* <QuickGrid Class="table" Items="DB.Timesheets">
+    <PropertyColumn Property="timesheet => timesheet.Projects.ProjectName" />
+    <PropertyColumn Property="timesheet => timesheet.Date" />
+
+    <TemplateColumn Context="timesheet">
+        <a href="@($"timesheets/edit?id={timesheet.Id}")">Edit</a> |
+        <a href="@($"timesheets/details?id={timesheet.Id}")">Details</a> |
+        <a href="@($"timesheets/delete?id={timesheet.Id}")">Delete</a>
+    </TemplateColumn>
+</QuickGrid> *@
+@code{
+    string userName = "";
+
+    public List<Timesheet> myTimesheets = new List<Timesheet>();
+    public List<ProjectTasks> tasks = new List<ProjectTasks>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        
+
+    }
+
+    
+}

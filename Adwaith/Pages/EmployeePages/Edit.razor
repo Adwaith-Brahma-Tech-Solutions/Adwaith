@@ -1,0 +1,122 @@
+﻿@page "/Employees/edit"
+@inject DatabaseContext DB
+@using Microsoft.AspNetCore.Authorization
+@using Adwaith.Application.Models
+@attribute [Authorize]
+@inject NavigationManager NavigationManager
+@using Microsoft.EntityFrameworkCore
+
+
+<PageTitle>Edit</PageTitle>
+
+<h1>Edit</h1>
+
+<h4>Employee</h4>
+<hr />
+@if (Employee is null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-4">
+            <EditForm method="post" Model="Employee" OnValidSubmit="UpdateEmployee" FormName="edit" Enhance>
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+                <input type="hidden" name="Employee.Id" value="@Employee.Id" />
+                <div class="mb-3">
+                    <label for="employeename" class="form-label">EmployeeName:</label>
+                    <InputText id="employeename" @bind-Value="Employee.EmployeeName" class="form-control" />
+                    <ValidationMessage For="() => Employee.EmployeeName" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="mobilenumber" class="form-label">MobileNumber:</label>
+                    <InputText id="mobilenumber" @bind-Value="Employee.MobileNumber" class="form-control" />
+                    <ValidationMessage For="() => Employee.MobileNumber" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="bankname" class="form-label">BankName:</label>
+                    <InputText id="bankname" @bind-Value="Employee.BankName" class="form-control" />
+                    <ValidationMessage For="() => Employee.BankName" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="bankaccountno" class="form-label">BankAccountNo:</label>
+                    <InputText id="bankaccountno" @bind-Value="Employee.BankAccountNo" class="form-control" />
+                    <ValidationMessage For="() => Employee.BankAccountNo" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="ifsc" class="form-label">IFSC:</label>
+                    <InputText id="ifsc" @bind-Value="Employee.IFSC" class="form-control" />
+                    <ValidationMessage For="() => Employee.IFSC" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="accountname" class="form-label">AccountName:</label>
+                    <InputText id="accountname" @bind-Value="Employee.AccountName" class="form-control" />
+                    <ValidationMessage For="() => Employee.AccountName" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="emailid" class="form-label">EmailId:</label>
+                    <InputText id="emailid" @bind-Value="Employee.EmailId" class="form-control" />
+                    <ValidationMessage For="() => Employee.EmailId" class="text-danger" />
+                </div>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </EditForm>
+        </div>
+    </div>
+}
+
+<div>
+    <a href="/employees">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    public int Id { get; set; }
+
+    [SupplyParameterFromForm]
+    public Employee? Employee { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Employee ??= await DB.Employees.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (Employee is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    // To protect from overposting attacks, enable the specific properties you want to bind to.
+    // For more details, see https://aka.ms/RazorPagesCRUD.
+    public async Task UpdateEmployee()
+    {
+
+        Employee.UpdatedAt = DateTime.Now;
+
+        DB.Attach(Employee!).State = EntityState.Modified;
+
+        try
+        {
+            await DB.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!EmployeeExists(Employee!.Id))
+            {
+                NavigationManager.NavigateTo("notfound");
+            }
+            else
+            {
+                throw;
+            }
+        }
+
+        NavigationManager.NavigateTo("/employees");
+    }
+
+    bool EmployeeExists(int id)
+    {
+        return DB.Employees.Any(e => e.Id == id);
+    }
+}
