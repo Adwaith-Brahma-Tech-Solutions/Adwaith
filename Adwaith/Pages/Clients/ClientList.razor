@@ -1,8 +1,12 @@
 ﻿@page "/clients"
 @inject DatabaseContext _context
 @attribute [Authorize]
+@rendermode InteractiveServer
 
 <h2>Our clients</h2>
+
+<button @onclick="Hello">hello Ap</button>
+
 
 <div class="row">
     @foreach (var item in clients)
@@ -26,6 +30,11 @@
     protected override void OnInitialized()
     {
         clients = _context.Clients.Where(x => x.IsRemoved == false).ToList();
+    }
+
+    void Hello()
+    {
+        Console.WriteLine("Hello");
     }
 
 }
